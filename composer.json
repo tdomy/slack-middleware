@@ -9,6 +9,7 @@
         }
     ],
     "require": {
+        "php": ">=7.1",
         "psr/http-server-middleware": "^1.0"
     },
     "require-dev": {
@@ -17,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Tdomy\\Slack\\": "src/"
+            "SlackMiddleware\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "TdomyTest\\Slack\\": "test/"
+            "TestSlackMiddleware\\": "tests/"
         }
     }
 }

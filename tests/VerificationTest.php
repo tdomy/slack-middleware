@@ -1,6 +1,6 @@
 <?php
 
-namespace TdomyTest\Slack;
+namespace TestSlackMiddleware;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -8,7 +8,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\StreamInterface as Stream;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use Tdomy\Slack\Middleware\Verification;
+use SlackMiddleware\Verification;
+use SlackMiddleware\Exceptions\InvalidRequestException;
 
 class VerificationTest extends TestCase
 {
@@ -35,7 +36,7 @@ class VerificationTest extends TestCase
 
     public function testInvalidTimestamp()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Request timestamp is invalid.');
 
         $middleware = new Verification('xsecretx');
@@ -58,7 +59,7 @@ class VerificationTest extends TestCase
 
     public function testInvalidSignature()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(InvalidRequestException::class);
         $this->expectExceptionMessage('Signature is invalid.');
 
         $middleware = new Verification('xsecretx');

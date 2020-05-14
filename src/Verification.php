@@ -1,11 +1,12 @@
 <?php
 
-namespace Tdomy\Slack\Middleware;
+namespace SlackMiddleware;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface as Middleware;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use SlackMiddleware\Exceptions\InvalidRequestException;
 
 class Verification implements Middleware
 {
@@ -27,6 +28,7 @@ class Verification implements Middleware
 
     /**
      * {@inheritdoc}
+     * @throws InvalidRequestException
      */
     public function process(Request $request, RequestHandler $handler): Response
     {
@@ -40,7 +42,6 @@ class Verification implements Middleware
     /**
      * @param Request $request
      * @return int
-     * @throws \Exception
      */
     private function getRequestTimestamp(Request $request): int
     {
@@ -50,7 +51,6 @@ class Verification implements Middleware
     /**
      * @param Request $request
      * @return string
-     * @throws \Exception
      */
     private function getSignature(Request $request): string
     {
@@ -61,7 +61,7 @@ class Verification implements Middleware
      * Verify Request-Timestamp header
      *
      * @param Request $request
-     * @throws \Exception
+     * @throws InvalidRequestException
      */
     private function verifyRequestTimestamp(Request $request): void
     {
@@ -69,7 +69,7 @@ class Verification implements Middleware
         $params = $request->getServerParams();
 
         if (abs($params['REQUEST_TIME'] - $timestamp) > 60 * 5) {
-            throw new \Exception('Request timestamp is invalid.');
+            throw new InvalidRequestException('Request timestamp is invalid.');
         }
     }
 
@@ -77,7 +77,7 @@ class Verification implements Middleware
      * Verify Signature header
      *
      * @param Request $request
-     * @throws \Exception
+     * @throws InvalidRequestException
      */
     private function verifySignature(Request $request): void
     {
@@ -85,7 +85,7 @@ class Verification implements Middleware
         $signature = 'v0=' . hash_hmac('sha256', $base_string, $this->signing_secret);
 
         if ($signature !== $this->getSignature($request)) {
-            throw new \Exception('Signature is invalid.');
+            throw new InvalidRequestException('Signature is invalid.');
         }
     }
 }
