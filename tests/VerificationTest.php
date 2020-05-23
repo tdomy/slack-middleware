@@ -3,7 +3,7 @@
 namespace TestSlackMiddleware;
 
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\StreamInterface as Stream;
@@ -11,7 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use SlackMiddleware\Verification;
 use SlackMiddleware\Exceptions\InvalidRequestException;
 
-class VerificationTest extends TestCase
+class VerificationTest extends MockeryTestCase
 {
     public function testValidRequest()
     {
@@ -26,12 +26,14 @@ class VerificationTest extends TestCase
             ],
             'text=testCase&user=tdomy'
         );
-
+        $response = Mockery::mock(Response::class);
         $request_handler = Mockery::mock(RequestHandler::class);
-        $request_handler->allows()->handle($request)->andReturn(Mockery::mock(Response::class));
+        $request_handler->shouldReceive('handle')
+            ->with($request)
+            ->once()
+            ->andReturn($response);
 
-        $middleware->process($request, $request_handler);
-        $this->assertTrue(true);
+        $this->assertSame($response, $middleware->process($request, $request_handler));
     }
 
     public function testInvalidTimestamp()
@@ -50,9 +52,8 @@ class VerificationTest extends TestCase
             ],
             'text=testCase&user=tdomy'
         );
-
         $request_handler = Mockery::mock(RequestHandler::class);
-        $request_handler->allows()->handle($request)->andReturn(Mockery::mock(Response::class));
+        $request_handler->shouldNotReceive('handle');
 
         $middleware->process($request, $request_handler);
     }
@@ -73,26 +74,30 @@ class VerificationTest extends TestCase
             ],
             'text=testCase&user=tdomy'
         );
-
         $request_handler = Mockery::mock(RequestHandler::class);
-        $request_handler->allows()->handle($request)->andReturn(Mockery::mock(Response::class));
+        $request_handler->shouldNotReceive('handle');
 
         $middleware->process($request, $request_handler);
     }
 
-    private function createRequest(array $headers, array $server_params, string $body): Request
+    private function createRequest(array $headers, array $server_params, string $body)
     {
         $request = Mockery::mock(Request::class);
 
         foreach ($headers as $header => $value) {
-            $request->allows()->getHeaderLine($header)->andReturn($value);
+            $request->shouldReceive('getHeaderLine')
+                ->with($header)
+                ->andReturn($value);
         }
 
-        $request->allows()->getServerParams()->andReturn($server_params);
+        $request->shouldReceive('getServerParams')
+            ->andReturn($server_params);
 
         $stream = Mockery::mock(Stream::class);
-        $stream->allows()->__toString()->andReturn($body);
-        $request->allows()->getBody()->andReturn($stream);
+        $stream->shouldReceive('__toString')
+            ->andReturn($body);
+        $request->shouldReceive('getBody')
+            ->andReturn($stream);
 
         return $request;
     }
